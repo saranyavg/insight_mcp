@@ -9,29 +9,77 @@
 
 ## Using the App
 
-The app has three tools:
+The app has four tools:
 
 ### 1. **search_internet**
-- Fetches Tata Sons ownership data from Wikipedia or OpenRouter
-- Automatically saves it to `data/tata_research.json`
-- Can be called manually to refresh data
+- Fetches comprehensive Company ownership data from OpenRouter API (Claude) with Wikipedia fallback
+- Automatically saves it to `data/company_research.json`
+- Can be called manually to refresh data with the latest information
 
-### 2. **show_dashboard** 
-- Displays the research dashboard with the saved data
-- Automatically fetches and saves data if none exists
-- Shows all records in a table
+### 2. **save_to_file**
+- Manually save any custom text or findings to the vault
+- Useful for adding supplementary research data
 
-### 3. **save_to_file**
-- Manually save any text to the vault
-- Useful for adding custom data
+### 3. **verify_data** ⭐ (NEW)
+- Audits the quality and integrity of saved research data
+- Checks for:
+  - Valid JSON structure
+  - Complete records with required fields
+  - Minimum content length
+  - Source information
+- Returns a detailed verification report with statistics
+
+### 4. **show_dashboard** 
+- Displays a beautiful, enhanced research dashboard with real-time data
+- Shows key statistics (total records, valid records, total words, verification status)
+- **NEW**: Includes a company search bar to request fresh summaries for any keyword
+- **NEW**: Displays condensed summaries (≤500 words) in an organized table
+- **NEW**: Shows complete full content in a detailed section below
+- Auto-fetches data if none exists
+- Features:
+  - Modern gradient design with dark theme
+  - Live data quality badges
+  - Word count tracking
+  - Responsive grid layout
+  - Scrollable full content viewer
+  - Hover effects and smooth transitions
 
 ## Workflow
 
-Simply call `show_dashboard` - it will automatically fetch data if needed and display the dashboard.
+### Quick Start:
+Simply call `show_dashboard` - it will automatically fetch and display everything!
 
-For manual control:
-1. Call `search_internet` → fetches data and saves it
-2. Call `show_dashboard` → displays the dashboard with the saved data
+### Advanced Workflow:
+1. Call `search_internet` → fetches fresh data from OpenRouter
+2. Call `verify_data` → audits the saved data quality
+3. Call `show_dashboard` → displays the dashboard with statistics
+
+## Key Features
+
+✨ **Enhanced UI**
+- Gradient backgrounds with modern color scheme
+- Responsive grid layout for statistics
+- Hover effects and smooth transitions
+- Professional typography and spacing
+- Dark theme optimized for readability
+
+🔐 **Data Verification**
+- Automatic quality checks
+- Comprehensive validation reports
+- Issue detection and logging
+- Data integrity confirmation
+
+� **Smart Summaries**
+- Condensed summaries (≤500 words) for quick overview
+- Complete full content available in detailed view
+- Word count tracking and statistics
+- Source attribution for all content
+
+🔍 **Search & Filter Guidance**
+- Tips for using MCP tools effectively
+- Filter options and data organization
+- Quality verification integration
+- Real-time statistics dashboard
 
 ## Testing Locally (without FastMCP UI)
 
@@ -49,12 +97,12 @@ This will test all functionality locally and show you what the complete workflow
 
 - **"The vault is empty"**: Call the `search_internet` tool first
 - **No output after calling tools**: Check terminal for [FETCH] or [SAVE] logs - they show what's happening
-- **File not found**: The data is saved to `data/tata_research.json` relative to the project root
+- **File not found**: The data is saved to `data/company_research.json` relative to the project root
 - **Need to reset**: Delete the `data/` folder to start fresh
 
 ## Notes
 
 - All paths use absolute paths internally, so location doesn't matter
-- Data is stored in `data/tata_research.json` as JSON
+- Data is stored in `data/company_research.json` as JSON
 - Each call to `search_internet` appends a new record (doesn't replace old ones)
 - The UI updates when `show_dashboard` is called
