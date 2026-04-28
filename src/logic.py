@@ -126,22 +126,13 @@ def perform_crud_save(content: str, query: str | None = None):
         os.makedirs(data_dir, exist_ok=True)
         print(f"[SAVE] Data directory ensured at {data_dir}")
         
-        # Load existing or start new list
-        records = []
-        if os.path.exists(abs_data_file):
-            with open(abs_data_file, "r") as f:
-                records = json.load(f)
-            print(f"[SAVE] Loaded {len(records)} existing records")
-        else:
-            print(f"[SAVE] No existing file, starting fresh")
-            
-        # Append new finding with optional query metadata
         payload = {"content": content, "source": "Web Search"}
         if query:
             payload["query"] = query
-        records.append(payload)
-        print(f"[SAVE] Total records to save: {len(records)}")
-        
+
+        records = [payload]  # ✅ overwrite instead of append
+        print(f"[SAVE] Overwriting with {len(records)} record")
+
         with open(abs_data_file, "w") as f:
             json.dump(records, f, indent=2)
         

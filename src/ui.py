@@ -38,88 +38,83 @@ async def create_research_dashboard():
     
     print(f"[UI] Looking for data at: {abs_data_file}")
     
-    if os.path.exists(abs_data_file):
-        try:
-            with open(abs_data_file, "r") as f:
-                data = json.load(f)
-                print(f"[UI] Loaded {len(data)} records from file")
-                
-                # Process data with summaries and full content
-                findings = []
-                for i, item in enumerate(data):
-                    if isinstance(item, dict):
-                        full_content = item.get("content", "")
-                        # Create condensed summary (under 500 words)
-                        words = full_content.split()
-                        if len(words) > 500:
-                            condensed_summary = " ".join(words[:500]) + "..."
-                        else:
-                            condensed_summary = full_content
-                        
-                        findings.append({
-                            "id": str(i + 1),
-                            "summary": condensed_summary,
-                            "full_content": full_content,
-                            "source": item.get("source", "Unknown"),
-                            "word_count": len(words),
-                            "char_count": len(full_content),
-                        })
-            
-            # Verify data quality
-            verification_report = verify_data_quality()
-            print(f"[UI] Data quality status: {verification_report['status']}")
-            
-        except Exception as e:
-            print(f"[UI] Error reading file: {str(e)}")
-    else:
-        print(f"[UI] Data file does not exist, fetching data automatically...")
-        # Automatically fetch and save data
-        fetched_data = await fetch_data()
-        if not (fetched_data.startswith("Failed") or fetched_data.startswith("Fetch error")):
-            save_result = perform_crud_save(fetched_data)
-            print(f"[UI] Auto-save result: {save_result}")
-            # Reload data
-            if os.path.exists(abs_data_file):
-                try:
-                    with open(abs_data_file, "r") as f:
-                        data = json.load(f)
-                        findings = []
-                        for i, item in enumerate(data):
-                            if isinstance(item, dict):
-                                full_content = item.get("content", "")
-                                words = full_content.split()
-                                if len(words) > 500:
-                                    condensed_summary = " ".join(words[:500]) + "..."
-                                else:
-                                    condensed_summary = full_content
-                                
-                                findings.append({
-                                    "id": str(i + 1),
-                                    "summary": condensed_summary,
-                                    "full_content": full_content,
-                                    "source": item.get("source", "Unknown"),
-                                    "word_count": len(words),
-                                    "char_count": len(full_content),
-                                })
-                    verification_report = verify_data_quality()
-                except Exception as e:
-                    print(f"[UI] Error reading after auto-fetch: {str(e)}")
-        else:
-            print(f"[UI] Auto-fetch failed: {fetched_data}")
-
-    # Determine status color and icon
-    status_color = "green" if verification_report.get("status") == "PASSED" else "blue" if verification_report.get("status") == "PASSED_WITH_WARNINGS" else "red"
-    status_icon = "✓" if verification_report.get("status") == "PASSED" else "⚠" if verification_report.get("status") == "PASSED_WITH_WARNINGS" else "✗"
-
     with PrefabApp(css_class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8") as app:
         
+        # ✅ VERY IMPORTANT: Hidden state binding (forces UI refresh)
+        Text("{{ refresh_trigger }}", css_class="hidden")
+        
+        if os.path.exists(abs_data_file):
+            try:
+                print(f"[UI] File exists: {os.path.exists(abs_data_file)}")
+                print(f"[UI] File size: {os.path.getsize(abs_data_file) if os.path.exists(abs_data_file) else 'N/A'}")
+
+                with open(abs_data_file, "r") as f:
+                    data = json.load(f)
+                    print(f"[UI] Loaded {len(data)} records from file")
+                    
+                    # Process data with summaries and full content
+                    findings = []
+                    for i, item in enumerate(data):
+                        if isinstance(item, dict):
+                            full_content = item.get("content", "")
+                            words = full_content.split()                        
+                            
+                            findings.append({
+                                "id": str(i + 1),
+                                "full_content": full_content,
+                                "source": item.get("source", "Unknown"),
+                                "word_count": len(words),
+                                "char_count": len(full_content),
+                            })
+            
+                # Verify data quality
+                verification_report = verify_data_quality()
+                print(f"[UI] Data quality status: {verification_report['status']}")
+                
+            except Exception as e:
+                print(f"[UI] Error reading file: {str(e)}")
+        else:
+            print(f"[UI] Data file does not exist, fetching data automatically...")
+            # Automatically fetch and save data
+            fetched_data = await fetch_data()
+            if not (fetched_data.startswith("Failed") or fetched_data.startswith("Fetch error")):
+                save_result = perform_crud_save(fetched_data)
+                print(f"[UI] Auto-save result: {save_result}")
+                # Reload data
+                if os.path.exists(abs_data_file):
+                    try:
+                        with open(abs_data_file, "r") as f:
+                            data = json.load(f)
+                            findings = []
+                            for i, item in enumerate(data):
+                                if isinstance(item, dict):
+                                    full_content = item.get("content", "")
+                                    words = full_content.split()
+                                    
+                                    findings.append({
+                                        "id": str(i + 1),
+                                        "full_content": full_content,
+                                        "source": item.get("source", "Unknown"),
+                                        "word_count": len(words),
+                                        "char_count": len(full_content),
+                                    })
+                        verification_report = verify_data_quality()
+                    except Exception as e:
+                        print(f"[UI] Error reading after auto-fetch: {str(e)}")
+            else:
+                print(f"[UI] Auto-fetch failed: {fetched_data}")
+
+        # Determine status color and icon
+        status_color = "green" if verification_report.get("status") == "PASSED" else "blue" if verification_report.get("status") == "PASSED_WITH_WARNINGS" else "red"
+        status_icon = "✓" if verification_report.get("status") == "PASSED" else "⚠" if verification_report.get("status") == "PASSED_WITH_WARNINGS" else "✗"
+
         # Header Section
         with Card(css_class="border-0 bg-gradient-to-r from-purple-700 to-fuchsia-700 shadow-2xl mb-8"):
             with CardContent(css_class="pt-8 pb-8"):
                 Heading(
                     "🏢 Companies Summary Hub",
-                    level=1,
-                    css_class="text-white text-4xl font-bold mb-2"
+                      level=1,
+                      css_class="text-white text-4xl font-bold mb-2"
                 )
                 Text(
                     "Enter a company keyword to fetch a fresh summary and save the result in the dashboard.",
@@ -142,7 +137,6 @@ async def create_research_dashboard():
                         CallTool("search_internet", arguments={"query": "{{ query }}"}),
                         SetState("refresh_trigger", "{{ $now }}"),
                         ShowToast("✓ Summary updated! Dashboard refreshing...", variant="success"),
-                        PopState(),
                     ],
                     css_class="grid gap-4",
                 ):
@@ -161,46 +155,8 @@ async def create_research_dashboard():
         
         if findings:
             with CardContent(css_class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4"):
-                # Card 1: Total Records
-                with Card(css_class="border-0 bg-slate-700 shadow-lg hover:shadow-xl transition-shadow"):
-                    with CardContent(css_class="pt-4 pb-4 text-center"):
-                        Text(
-                            "📊 Total Records",
-                            css_class="text-slate-300 text-xs font-semibold uppercase tracking-wider mb-1"
-                        )
-                        Heading(
-                            str(verification_report.get("total_records", len(findings))),
-                            level=2,
-                            css_class="text-white text-2xl font-bold"
-                        )
                 
-                # Card 2: Data Validity
-                with Card(css_class="border-0 bg-slate-700 shadow-lg hover:shadow-xl transition-shadow"):
-                    with CardContent(css_class="pt-4 pb-4 text-center"):
-                        Text(
-                            "✓ Valid Records",
-                            css_class="text-slate-300 text-xs font-semibold uppercase tracking-wider mb-1"
-                        )
-                        Heading(
-                            str(verification_report.get("valid_records", len(findings))),
-                            level=2,
-                            css_class="text-green-400 text-2xl font-bold"
-                        )
-                
-                # Card 3: Total Words
-                with Card(css_class="border-0 bg-slate-700 shadow-lg hover:shadow-xl transition-shadow"):
-                    with CardContent(css_class="pt-4 pb-4 text-center"):
-                        Text(
-                            "📝 Total Words",
-                            css_class="text-slate-300 text-xs font-semibold uppercase tracking-wider mb-1"
-                        )
-                        Heading(
-                            str(sum(f["word_count"] for f in findings)),
-                            level=2,
-                            css_class="text-blue-400 text-2xl font-bold"
-                        )
-                
-                # Card 4: Data Quality Status
+                # Card 1: Data Quality Status
                 with Card(css_class="border-0 bg-slate-700 shadow-lg hover:shadow-xl transition-shadow"):
                     with CardContent(css_class="pt-4 pb-4 text-center"):
                         Text(
@@ -212,48 +168,6 @@ async def create_research_dashboard():
                             level=2,
                             css_class=f"text-{status_color}-400 text-lg font-bold"
                         )
-            
-            # Main Data Table Card
-            with Card(css_class="border-0 bg-slate-800 shadow-xl overflow-hidden mb-8"):
-                with CardHeader(css_class="bg-slate-700 border-b border-slate-600 flex justify-between items-center"):
-                    Heading(
-                        "📋 Condensed Research Summaries (≤500 words)",
-                        level=2,
-                        css_class="text-white text-2xl font-bold"
-                    )
-                    Badge(
-                        f"{len(findings)} entries",
-                        css_class="bg-blue-600 text-white px-3 py-1 rounded-full"
-                    )
-                
-                with CardContent(css_class="overflow-x-auto"):
-                    with Table():
-                        with TableHeader(css_class="bg-slate-700"):
-                            with TableRow():
-                                TableHead("ID", css_class="text-slate-200 font-semibold")
-                                TableHead("Summary (≤500 words)", css_class="text-slate-200 font-semibold")
-                                TableHead("Source", css_class="text-slate-200 font-semibold")
-                                TableHead("Words", css_class="text-slate-200 font-semibold")
-                        
-                        with TableBody():
-                            for item in findings:
-                                with TableRow(css_class="hover:bg-slate-700 transition-colors border-b border-slate-600"):
-                                    TableCell(
-                                        item["id"],
-                                        css_class="text-slate-300 font-semibold"
-                                    )
-                                    TableCell(
-                                        item["summary"],
-                                        css_class="text-slate-200 py-3 text-sm leading-relaxed"
-                                    )
-                                    TableCell(
-                                        item["source"],
-                                        css_class="text-blue-300 text-sm"
-                                    )
-                                    TableCell(
-                                        f"{item['word_count']} words",
-                                        css_class="text-slate-400 text-sm"
-                                    )
             
             # Full Content Section
             with Card(css_class="border-0 bg-slate-800 shadow-xl overflow-hidden"):

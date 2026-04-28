@@ -33,7 +33,6 @@ The app has four tools:
 - Displays a beautiful, enhanced research dashboard with real-time data
 - Shows key statistics (total records, valid records, total words, verification status)
 - **NEW**: Includes a company search bar to request fresh summaries for any keyword
-- **NEW**: Displays condensed summaries (≤500 words) in an organized table
 - **NEW**: Shows complete full content in a detailed section below
 - Auto-fetches data if none exists
 - Features:
@@ -68,12 +67,6 @@ Simply call `show_dashboard` - it will automatically fetch and display everythin
 - Comprehensive validation reports
 - Issue detection and logging
 - Data integrity confirmation
-
-� **Smart Summaries**
-- Condensed summaries (≤500 words) for quick overview
-- Complete full content available in detailed view
-- Word count tracking and statistics
-- Source attribution for all content
 
 🔍 **Search & Filter Guidance**
 - Tips for using MCP tools effectively
