@@ -1,4 +1,5 @@
 import asyncio
+import os
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from src.logic import fetch_data, perform_crud_save, verify_data_quality
@@ -9,24 +10,30 @@ load_dotenv()
 mcp = FastMCP("InsightsServer")
 
 @mcp.tool()
-async def search_internet(query: str = "Tata Sons") -> str:
+async def search_internet(query: str = "Tata Sons") -> dict:
     """Fetches a company summary from the web for the given query and saves it to the local file."""
     try:
         print(f"[TOOL] search_internet called with query: {query}")
         data = await fetch_data(query)
         print(f"[TOOL] Fetched data: {len(data)} characters")
         
-        if data.startswith("Failed") or data.startswith("Fetch error"):
-            return f"Error during fetch: {data}"
+        if isinstance(data, str) and (data.startswith("Failed") or data.startswith("Fetch error")):
+            return {"status": "error", "message": data}
         
-        # Automatically save the fetched data with query metadata
-        save_result = perform_crud_save(data, query=query)
+        source = "OpenRouter" if os.getenv("OPENROUTER_API_KEY") else "Wikipedia"
+        save_result = perform_crud_save(data, query=query, source=source)
         print(f"[TOOL] Save result: {save_result}")
-        return save_result
+        return {
+            "status": "success",
+            "query": query,
+            "content": data,
+            "source": source,
+            "save_message": save_result,
+        }
     except Exception as e:
         error_msg = f"Error in search_internet: {str(e)}"
         print(f"[TOOL] {error_msg}")
-        return error_msg
+        return {"status": "error", "message": error_msg}
 
 @mcp.tool()
 def save_to_file(details: str) -> str:
@@ -43,8 +50,8 @@ def verify_data() -> str:
         
         # Format report for display
         result = f"""
-📊 Data Quality Verification Report
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Data Quality Verification Report
+================================
 Status: {report['status']}
 Total Records: {report['total_records']}
 Valid Records: {report['valid_records']}
@@ -52,15 +59,15 @@ Invalid Records: {report['invalid_records']}
 File Size: {report['file_size_kb']} KB
 Avg Content Length: {int(report['avg_content_length'])} characters
 
-File Exists: {'✓ Yes' if report['file_exists'] else '✗ No'}
+File Exists: {'Yes' if report['file_exists'] else 'No'}
         """
         
         if report['issues']:
-            result += "\n⚠️  Issues Found:\n"
+            result += "\nIssues Found:\n"
             for issue in report['issues']:
                 result += f"  • {issue}\n"
         else:
-            result += "\n✓ No issues detected!\n"
+            result += "\nNo issues detected!\n"
         
         return result
     except Exception as e:

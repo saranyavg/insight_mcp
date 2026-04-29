@@ -110,7 +110,7 @@ async def fetch_from_wikipedia(query: str):
         print(f"[FETCH] {error_msg}")
         return error_msg
 
-def perform_crud_save(content: str, query: str | None = None):
+def perform_crud_save(content: str, query: str | None = None, source: str = "Web Search"):
     """Requirement 2: Perform CRUD (Create/Update) on a local file."""
     try:
         # Get absolute path
@@ -126,7 +126,7 @@ def perform_crud_save(content: str, query: str | None = None):
         os.makedirs(data_dir, exist_ok=True)
         print(f"[SAVE] Data directory ensured at {data_dir}")
         
-        payload = {"content": content, "source": "Web Search"}
+        payload = {"content": content, "source": source}
         if query:
             payload["query"] = query
 
@@ -229,13 +229,13 @@ def verify_data_quality() -> dict:
         # Determine overall status
         if verification_report["invalid_records"] == 0 and verification_report["valid_records"] > 0:
             verification_report["status"] = "PASSED"
-            print(f"[VERIFY] ✓ All records validated successfully")
+            print(f"[VERIFY] All records validated successfully")
         elif verification_report["valid_records"] > 0:
             verification_report["status"] = "PASSED_WITH_WARNINGS"
             print(f"[VERIFY] ⚠ {verification_report['invalid_records']} invalid record(s) found")
         else:
             verification_report["status"] = "FAILED"
-            print(f"[VERIFY] ✗ No valid records found")
+            print(f"[VERIFY] No valid records found")
         
     except json.JSONDecodeError as e:
         verification_report["status"] = "FAILED"
