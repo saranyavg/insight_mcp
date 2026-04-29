@@ -5,97 +5,72 @@
 1. Open a terminal in the project folder: `C:\Users\Saranya\Downloads\insight_mcp`
 2. Activate the conda environment: `conda activate prefab_env`
 3. Start the app: `fastmcp dev apps main.py`
-4. Open the browser URL shown (typically `http://localhost:8080`)
+4. Open the browser URL shown by FastMCP (for example `http://localhost:8080`)
 
-## Using the App
+## App Behavior
 
-The app has four tools:
+This project exposes an MCP server with a Prefab UI dashboard that is search-driven.
+The UI does not preload saved results on open. Data is only fetched when you enter a company name and press `Search`.
+Once the search completes, the result is saved to `data/company_research.json` and immediately displayed in the dashboard.
+
+## Tools
 
 ### 1. **search_internet**
-- Fetches comprehensive Company ownership data from OpenRouter API (Claude) with Wikipedia fallback
-- Automatically saves it to `data/company_research.json`
-- Can be called manually to refresh data with the latest information
+- Fetches company summary data from OpenRouter AI
+- Falls back to Wikipedia if no API key is available or the OpenRouter request fails
+- Saves the fetched result to `data/company_research.json`
+- Returns structured data for the UI to render immediately after search
 
 ### 2. **save_to_file**
-- Manually save any custom text or findings to the vault
-- Useful for adding supplementary research data
+- Saves custom text or findings to the local vault
+- Useful for persisting supplementary research notes
 
-### 3. **verify_data** ⭐ (NEW)
-- Audits the quality and integrity of saved research data
-- Checks for:
-  - Valid JSON structure
-  - Complete records with required fields
+### 3. **verify_data**
+- Verifies the saved JSON data for structure and content quality
+- Checks:
+  - File existence
+  - JSON validity
+  - Required fields
   - Minimum content length
-  - Source information
-- Returns a detailed verification report with statistics
+  - Source metadata
+- Returns a verification report with status and issue details
 
-### 4. **show_dashboard** 
-- Displays a beautiful, enhanced research dashboard with real-time data
-- Shows key statistics (total records, valid records, total words, verification status)
-- **NEW**: Includes a company search bar to request fresh summaries for any keyword
-- **NEW**: Shows complete full content in a detailed section below
-- Auto-fetches data if none exists
-- Features:
-  - Modern gradient design with dark theme
-  - Live data quality badges
-  - Word count tracking
-  - Responsive grid layout
-  - Scrollable full content viewer
-  - Hover effects and smooth transitions
+### 4. **show_dashboard**
+- Opens the interactive dashboard UI
+- Starts clean and waits for a manual search
+- Displays the latest search result once the search tool writes it
+- Includes:
+  - search bar for custom company queries
+  - saved result preview with query, source, and save message
+  - full fetched content viewer
 
 ## Workflow
 
-### Quick Start:
-Simply call `show_dashboard` - it will automatically fetch and display everything!
+### Recommended Flow
+1. Open the UI by calling `show_dashboard`
+2. Enter a company name in the search box
+3. Click `Search`
+4. The app fetches fresh data, saves it, and displays it immediately
 
-### Advanced Workflow:
-1. Call `search_internet` → fetches fresh data from OpenRouter
-2. Call `verify_data` → audits the saved data quality
-3. Call `show_dashboard` → displays the dashboard with statistics
+### Optional Verification
+1. Call `verify_data` to audit the saved JSON data
+2. Review the verification report for any warnings or issues
 
-## Key Features
+## Demo Video
 
-✨ **Enhanced UI**
-- Gradient backgrounds with modern color scheme
-- Responsive grid layout for statistics
-- Hover effects and smooth transitions
-- Professional typography and spacing
-- Dark theme optimized for readability
+Please find the demo video link here:
 
-🔐 **Data Verification**
-- Automatic quality checks
-- Comprehensive validation reports
-- Issue detection and logging
-- Data integrity confirmation
-
-🔍 **Search & Filter Guidance**
-- Tips for using MCP tools effectively
-- Filter options and data organization
-- Quality verification integration
-- Real-time statistics dashboard
-
-## Testing Locally (without FastMCP UI)
-
-Run: `python test_workflow.py`
-
-This will test all functionality locally and show you what the complete workflow looks like.
-
-## Testing Locally (without FastMCP UI)
-
-Run: `python test_workflow.py`
-
-This will test all functionality locally and show you what the complete workflow looks like.
+`https://youtu.be/-iehr7BhgdE`
 
 ## Troubleshooting
 
-- **"The vault is empty"**: Call the `search_internet` tool first
-- **No output after calling tools**: Check terminal for [FETCH] or [SAVE] logs - they show what's happening
-- **File not found**: The data is saved to `data/company_research.json` relative to the project root
-- **Need to reset**: Delete the `data/` folder to start fresh
+- **UI shows no data on open**: This is expected. Search must be performed before results appear.
+- **Search returns an error**: Check terminal logs for `[FETCH]` and `[SAVE]` messages.
+- **Saved file not found**: The app writes to `data/company_research.json` relative to the project root.
+- **Need to reset data**: Delete the `data/company_research.json` file and restart.
 
 ## Notes
 
-- All paths use absolute paths internally, so location doesn't matter
-- Data is stored in `data/company_research.json` as JSON
-- Each call to `search_internet` appends a new record (doesn't replace old ones)
-- The UI updates when `show_dashboard` is called
+- The UI is intentionally search-driven and does not auto-fetch on load.
+- Fetched data is saved as JSON and displayed after the search returns.
+- The dashboard uses state binding so the result appears immediately after the search tool finishes.
